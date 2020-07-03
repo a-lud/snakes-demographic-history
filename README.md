@@ -10,4 +10,5 @@ material. There is no guarantee that all figures found in these directories made
 their way into the final text.
 
 The `results` directory simply contains an `Rdata` object that stored the aggregated
-PSMC results across samples and clock intervals.
+PSMC results across samples and clock intervals. The tables used in the main text
+are also stored here.
