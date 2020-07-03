@@ -100,6 +100,11 @@ vcf <- list.files(path = dir, pattern = '.vcf.stats', full.names = TRUE, recursi
 # Joining data frames
 tbl <- reduce(list(cov, aln, vcf), left_join)
 
+## Filter unwanted samples
+tbl %<>%
+  filter(! reference == 'Laticauda colubrina') %>%
+  filter(! sample == 'Laticauda colubrina')
+
 ###############################################################################
 ## Coverage tables
 
