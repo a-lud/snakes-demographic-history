@@ -4,7 +4,7 @@
 library(tidyverse)
 library(magrittr)
 
-source('scripts/demographic_history.R')
+source('scripts/Rscripts/demographic_history.R')
 
 ###############################################################################
 ## Parameters
@@ -104,14 +104,31 @@ tbl <- reduce(list(cov, aln, vcf), left_join)
 ## Coverage tables
 
 # All samples to each reference
-all_cov <- tbl %>%
-  select(reference, sample, total_reads, mapped,avg_depth, breadth_depth, prop_aln, prop_pp) %>%
-  mutate(double_avg = avg_depth * 2,
-         third_avg = avg_depth / 3) %>%
-  select(reference, sample, total_reads, mapped, avg_depth, double_avg, third_avg, breadth_cov = breadth_depth, prop_aln, prop_properPair = prop_pp)
+df_all <- tbl %>%
+  select(reference, sample, total_reads, mapped, 
+         avg_depth, breadth_cov = breadth_depth, 
+         prop_aln, prop_properPair = prop_pp, 
+         genome_size, n_sites, n_SNPs)
 
-# All samples max/min coverage/alignment by reference
-all_cov_max_min <- all_cov %>%
+# Samples to respecitive genomes
+df_mainDat <- df_all %>%
+  filter(reference == sample) %>%
+  select(-c(total_reads, mapped))
+
+df_mainDat_max_min <- df_mainDat %>%
+  mutate(max_avg = max(avg_depth),
+         min_avg = min(avg_depth),
+         max_breadth = max(breadth_cov),
+         min_breadth = min(breadth_cov)) %>%
+  select(contains(match = 'max'), contains('min')) %>%
+  distinct()
+
+# Cross species alignments
+df_crossSpecies <- df_all %>%
+  filter(reference != sample) %>%
+  select(-c(total_reads, mapped))
+
+df_crossSpecies_max_min <- df_all %>%
   filter(reference != sample) %>%
   group_by(reference) %>%
   mutate(avg_aln = sum(mapped)/sum(total_reads) * 100,
@@ -127,67 +144,42 @@ all_cov_max_min <- all_cov %>%
   select(reference, contains(match = 'max'), contains('min'), avg_aln) %>%
   distinct()
 
-# Samples to respective reference genomes
-ref_cov <- tbl %>%
-  select(reference, sample, avg_depth, breadth_depth, prop_aln, prop_pp) %>%
-  filter(reference == sample) %>%
-  mutate(double_avg = avg_depth * 2,
-         third_avg = avg_depth / 3) %>%
-  select(reference_sample = reference, avg_depth, double_avg, third_avg, breadth_cov = breadth_depth, prop_aln, prop_pp)
-
-# Samples to respective reference genomes: max/min coverage comparison between samples
-ref_cov_max_min <- ref_cov %>%
-  mutate(max_avg = max(avg_depth),
-         min_avg = min(avg_depth),
-         max_breadth = max(breadth_cov),
-         min_breadth = min(breadth_cov)) %>%
-  select(contains(match = 'max'), contains('min')) %>%
-  distinct()
-
-###############################################################################
-## Variant tables
-
-# All samples to each reference
-all_var <- tbl %>%
-  select(reference, sample, n_sites, n_SNPs) %>%
-  rename()
-
-# Samples to respective reference genomes
-ref_var <- tbl %>%
-  select(reference, sample, n_sites, n_SNPs) %>%
-  filter(reference == sample)
+write_csv(x = df_mainDat, path = 'results/table_mainData.csv', col_names = TRUE)
+write_csv(x = df_mainDat_max_min, path = 'results/table_mainData_maxMin.csv', col_names = TRUE)
+write_csv(x = df_crossSpecies, path = 'results/table_crossSpecies.csv', col_names = TRUE)
+write_csv(x = df_crossSpecies_max_min, path = 'results/table_crossSpecies_maxMin.csv', col_names = TRUE)
 
 ###############################################################################
 ## Plotting - Coverage
-ref_cov %>%
-  select(-c(double_avg, third_avg)) %>%
-  pivot_longer(-reference_sample, names_to = 'desc', values_to = 'values') %>%
-  mutate(desc = case_when(
-    desc == 'avg_depth' ~ 'Avg. depth',
-    desc == 'breadth_cov' ~ 'Avg. breadth',
-    desc == 'prop_aln' ~ '% reads aligned',
-    desc == 'prop_pp' ~ '% read properly paired'
-  ),
-  desc = factor(x = desc, levels = c('Avg. depth',
-                                     'Avg. breadth',
-                                     '% reads aligned',
-                                     '% read properly paired'))) %>%
-  ggplot(aes(x = reference_sample, 
-             y = values, 
-             fill = reference_sample)) +
-  geom_bar(stat = 'identity', 
-           position = 'dodge',
-           colour = 'black') +
-  scale_y_continuous(breaks = seq(0, max(ref_cov$avg_depth), 20),
-                     expand = c(0,2.5)) +
-  scale_fill_manual(values = RColorBrewer::brewer.pal(n = 11, name = 'Spectral')) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 90, 
-                                   size = 12),
-        axis.title.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        axis.title.y = element_blank(),
-        axis.text.y = element_text(size = 12),
-        legend.title = element_blank(),
-        legend.text = element_text(size = 12)) +
-  facet_wrap(.~desc)
+# ref_cov %>%
+#   select(-c(double_avg, third_avg)) %>%
+#   pivot_longer(-reference_sample, names_to = 'desc', values_to = 'values') %>%
+#   mutate(desc = case_when(
+#     desc == 'avg_depth' ~ 'Avg. depth',
+#     desc == 'breadth_cov' ~ 'Avg. breadth',
+#     desc == 'prop_aln' ~ '% reads aligned',
+#     desc == 'prop_pp' ~ '% read properly paired'
+#   ),
+#   desc = factor(x = desc, levels = c('Avg. depth',
+#                                      'Avg. breadth',
+#                                      '% reads aligned',
+#                                      '% read properly paired'))) %>%
+#   ggplot(aes(x = reference_sample, 
+#              y = values, 
+#              fill = reference_sample)) +
+#   geom_bar(stat = 'identity', 
+#            position = 'dodge',
+#            colour = 'black') +
+#   scale_y_continuous(breaks = seq(0, max(ref_cov$avg_depth), 20),
+#                      expand = c(0,2.5)) +
+#   scale_fill_manual(values = RColorBrewer::brewer.pal(n = 11, name = 'Spectral')) +
+#   theme_bw() +
+#   theme(axis.text.x = element_text(angle = 90, 
+#                                    size = 12),
+#         axis.title.x = element_blank(),
+#         axis.ticks.x = element_blank(),
+#         axis.title.y = element_blank(),
+#         axis.text.y = element_text(size = 12),
+#         legend.title = element_blank(),
+#         legend.text = element_text(size = 12)) +
+#   facet_wrap(.~desc)
