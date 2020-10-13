@@ -18,22 +18,24 @@ cov <- list.files(path = dir, pattern = '.tsv', full.names = TRUE, recursive = T
   map(read_tsv, col_names = TRUE, col_types = cols()) %>%
   bind_rows() %>%
   mutate(reference = case_when(
-    reference == 'GCF_900518725.1_TS' ~ 'Notechis scutatus',
-    reference == 'GCF_900518735.1_EBS' ~ 'Pseudonaja textilis',
-    reference == 'GCA_004320005.1_hydMel' ~ 'Hydrophis melanocephalus',
-    reference == 'aipysurusLaevis' ~ 'Aipysurus laevis',
-    reference == 'GCA_009733165.1_Nana' ~ 'Naja naja',
-    reference == 'GCA_004320025.1_latLat' ~ 'Laticauda laticaudata',
-    reference == 'GCA_004320045.1_latCor' ~ 'Laticauda colubrina'
+    reference == 'GCF_900518725.1_TS' ~ 'N. scutatus',
+    reference == 'GCF_900518735.1_EBS' ~ 'P. textilis',
+    reference == 'GCA_004320005.1_hydMel' ~ 'H. melanocephalus',
+    reference == 'aipysurusLaevis' ~ 'A. laevis',
+    reference == 'GCA_009733165.1_Nana' ~ 'N. naja',
+    reference == 'GCA_004320025.1_latLat' ~ 'L. laticaudata',
+    reference == 'GCA_004320045.1_latCor' ~ 'L. colubrina',
+    reference == 'Hcur1.v1.1' ~ 'H. curtus'
   ),
   sample = case_when(
-    sample == 'DRR144984_DRR144985' ~ 'Laticauda laticaudata',
-    sample == 'DRR147552' ~ 'Laticauda colubrina',
-    sample == 'DRR147394' ~ 'Hydrophis melanocephalus',
-    sample == 'ERR2714264_ts' ~ 'Notechis scutatus',
-    sample == 'ERR2714265' ~ 'Pseudonaja textilis',
-    sample == 'KLS0691' ~ 'Aipysurus laevis',
-    sample == 'SRR10428161' ~ 'Naja naja'
+    sample == 'DRR144984_DRR144985' ~ 'L. laticaudata',
+    sample == 'DRR147552' ~ 'L. colubrina',
+    sample == 'DRR147394' ~ 'H. melanocephalus',
+    sample == 'ERR2714264_ts' ~ 'N. scutatus',
+    sample == 'ERR2714265' ~ 'P. textilis',
+    sample == 'KLS0691' ~ 'A. laevis',
+    sample == 'SRR10428161' ~ 'N. naja',
+    sample == 'SRR10861675_SRR10861676' ~ 'H. curtus'
   ))
 
 # % Reads aligned
@@ -44,23 +46,25 @@ aln <- list.files(path = dir, pattern = 'flagstat', full.names = TRUE, recursive
   rename(sample = Filename) %>%
   mutate(reference = sub('::.*', '', reference),
          reference = case_when(
-           reference == 'GCF_900518725.1_TS' ~ 'Notechis scutatus',
-           reference == 'GCF_900518735.1_EBS' ~ 'Pseudonaja textilis',
-           reference == 'GCA_004320005.1_hydMel' ~ 'Hydrophis melanocephalus',
-           reference == 'aipysurusLaevis' ~ 'Aipysurus laevis',
-           reference == 'GCA_009733165.1_Nana' ~ 'Naja naja',
-           reference == 'GCA_004320025.1_latLat' ~ 'Laticauda laticaudata',
-           reference == 'GCA_004320045.1_latCor' ~ 'Laticauda colubrina'
+           reference == 'GCF_900518725.1_TS' ~ 'N. scutatus',
+           reference == 'GCF_900518735.1_EBS' ~ 'P. textilis',
+           reference == 'GCA_004320005.1_hydMel' ~ 'H. melanocephalus',
+           reference == 'aipysurusLaevis' ~ 'A. laevis',
+           reference == 'GCA_009733165.1_Nana' ~ 'N. naja',
+           reference == 'GCA_004320025.1_latLat' ~ 'L. laticaudata',
+           reference == 'GCA_004320045.1_latCor' ~ 'L. colubrina',
+           reference == 'Hcur1.v1.1' ~ 'H. curtus'
          ),
          sample = sub('.flagstat', '', sample),
          sample = case_when(
-           sample == 'DRR144984_DRR144985' ~ 'Laticauda laticaudata',
-           sample == 'DRR147552' ~ 'Laticauda colubrina',
-           sample == 'DRR147394' ~ 'Hydrophis melanocephalus',
-           sample == 'ERR2714264_ts' ~ 'Notechis scutatus',
-           sample == 'ERR2714265' ~ 'Pseudonaja textilis',
-           sample == 'KLS0691' ~ 'Aipysurus laevis',
-           sample == 'SRR10428161' ~ 'Naja naja'
+           sample == 'DRR144984_DRR144985' ~ 'L. laticaudata',
+           sample == 'DRR147552' ~ 'L. colubrina',
+           sample == 'DRR147394' ~ 'H. melanocephalus',
+           sample == 'ERR2714264_ts' ~ 'N. scutatus',
+           sample == 'ERR2714265' ~ 'P. textilis',
+           sample == 'KLS0691' ~ 'A. laevis',
+           sample == 'SRR10428161' ~ 'N. naja',
+           sample == 'SRR10861675_SRR10861676' ~ 'H. curtus'
          )) %>%
   filter(flag %in% c('in total','mapped', 'properly paired')) %>%
   select(-`QC-failed`) %>%
@@ -75,22 +79,24 @@ vcf <- list.files(path = dir, pattern = '.vcf.stats', full.names = TRUE, recursi
   readBcftoolsStats() %>%
   extract2('SN') %>%
   mutate(reference = case_when(
-    reference == 'GCF_900518725.1_TS' ~ 'Notechis scutatus',
-    reference == 'GCF_900518735.1_EBS' ~ 'Pseudonaja textilis',
-    reference == 'GCA_004320005.1_hydMel' ~ 'Hydrophis melanocephalus',
-    reference == 'aipysurusLaevis' ~ 'Aipysurus laevis',
-    reference == 'GCA_009733165.1_Nana' ~ 'Naja naja',
-    reference == 'GCA_004320025.1_latLat' ~ 'Laticauda laticaudata',
-    reference == 'GCA_004320045.1_latCor' ~ 'Laticauda colubrina'
+    reference == 'GCF_900518725.1_TS' ~ 'N. scutatus',
+    reference == 'GCF_900518735.1_EBS' ~ 'P. textilis',
+    reference == 'GCA_004320005.1_hydMel' ~ 'H. melanocephalus',
+    reference == 'aipysurusLaevis' ~ 'A. laevis',
+    reference == 'GCA_009733165.1_Nana' ~ 'N. naja',
+    reference == 'GCA_004320025.1_latLat' ~ 'L. laticaudata',
+    reference == 'GCA_004320045.1_latCor' ~ 'L. colubrina',
+    reference == 'Hcur1.v1.1' ~ 'H. curtus'
   ),
   sample = case_when(
-    sample == 'DRR144984_DRR144985' ~ 'Laticauda laticaudata',
-    sample == 'DRR147552' ~ 'Laticauda colubrina',
-    sample == 'DRR147394' ~ 'Hydrophis melanocephalus',
-    sample == 'ERR2714264_ts' ~ 'Notechis scutatus',
-    sample == 'ERR2714265' ~ 'Pseudonaja textilis',
-    sample == 'KLS0691' ~ 'Aipysurus laevis',
-    sample == 'SRR10428161' ~ 'Naja naja'
+    sample == 'DRR144984_DRR144985' ~ 'L. laticaudata',
+    sample == 'DRR147552' ~ 'L. colubrina',
+    sample == 'DRR147394' ~ 'H. melanocephalus',
+    sample == 'ERR2714264_ts' ~ 'N. scutatus',
+    sample == 'ERR2714265' ~ 'P. textilis',
+    sample == 'KLS0691' ~ 'A. laevis',
+    sample == 'SRR10428161' ~ 'N. naja',
+    sample == 'SRR10861675_SRR10861676' ~ 'H. curtus'
   )) %>%
   filter(key %in% c('number of records:', 'number of SNPs:')) %>%
   pivot_wider(names_from = key, values_from = value) %>%
@@ -102,8 +108,8 @@ tbl <- reduce(list(cov, aln, vcf), left_join)
 
 ## Filter unwanted samples
 tbl %<>%
-  filter(! reference == 'Laticauda colubrina') %>%
-  filter(! sample == 'Laticauda colubrina')
+  filter(! reference == 'L. colubrina') %>%
+  filter(! sample == 'L. colubrina')
 
 ###############################################################################
 ## Coverage tables
@@ -115,23 +121,44 @@ df_all <- tbl %>%
          prop_aln, prop_properPair = prop_pp, 
          genome_size, n_sites, n_SNPs)
 
-# Samples to respecitive genomes
+# Samples to respective genomes
 df_mainDat <- df_all %>%
   filter(reference == sample) %>%
-  select(-c(total_reads, mapped))
+  select(-c(total_reads, mapped, reference)) %>%
+  rename(
+    Sample = sample,
+    `Avg. depth` = avg_depth,
+    `Breadth of coverage` = breadth_cov,
+    `Aln. (%)` = prop_aln,
+    `Proper pair (%)` = prop_properPair,
+    `Genome size` = genome_size,
+    `No. called sites` = n_sites,
+    `No. SNPs` = n_SNPs
+  )
 
 df_mainDat_max_min <- df_mainDat %>%
-  mutate(max_avg = max(avg_depth),
-         min_avg = min(avg_depth),
-         max_breadth = max(breadth_cov),
-         min_breadth = min(breadth_cov)) %>%
+  mutate(max_avg = max(`Avg. depth`),
+         min_avg = min(`Avg. depth`),
+         max_breadth = max(`Breadth of coverage`),
+         min_breadth = min(`Breadth of coverage`)) %>%
   select(contains(match = 'max'), contains('min')) %>%
   distinct()
 
 # Cross species alignments
 df_crossSpecies <- df_all %>%
   filter(reference != sample) %>%
-  select(-c(total_reads, mapped))
+  select(-c(total_reads, mapped)) %>%
+  rename(
+    Reference = reference,
+    Sample = sample,
+    `Avg. depth` = avg_depth,
+    `Breadth of coverage` = breadth_cov,
+    `Aln. (%)` = prop_aln,
+    `Proper pair (%)` = prop_properPair,
+    `Genome size` = genome_size,
+    `No. called sites` = n_sites,
+    `No. SNPs` = n_SNPs
+  )
 
 df_crossSpecies_max_min <- df_all %>%
   filter(reference != sample) %>%
@@ -149,10 +176,10 @@ df_crossSpecies_max_min <- df_all %>%
   select(reference, contains(match = 'max'), contains('min'), avg_aln) %>%
   distinct()
 
-write_csv(x = df_mainDat, path = 'results/table_mainData.csv', col_names = TRUE)
-write_csv(x = df_mainDat_max_min, path = 'results/table_mainData_maxMin.csv', col_names = TRUE)
-write_csv(x = df_crossSpecies, path = 'results/table_crossSpecies.csv', col_names = TRUE)
-write_csv(x = df_crossSpecies_max_min, path = 'results/table_crossSpecies_maxMin.csv', col_names = TRUE)
+write_csv(x = df_mainDat, file = 'results/table_mainData.csv', col_names = TRUE)
+write_csv(x = df_mainDat_max_min, file = 'results/table_mainData_maxMin.csv', col_names = TRUE)
+write_csv(x = df_crossSpecies, file = 'results/table_crossSpecies.csv', col_names = TRUE)
+write_csv(x = df_crossSpecies_max_min, file = 'results/table_crossSpecies_maxMin.csv', col_names = TRUE)
 
 ###############################################################################
 ## Plotting - Coverage

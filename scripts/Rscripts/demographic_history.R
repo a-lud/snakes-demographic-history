@@ -7,6 +7,40 @@
 ###############################################################################
 ## Functions
 
+## Functions
+shift_legend <- function(p) {
+  # check if p is a valid object
+  if(!(inherits(p, "gtable"))){
+    if(inherits(p, "ggplot")){
+      gp <- ggplotGrob(p) # convert to grob
+    } else {
+      message("This is neither a ggplot object nor a grob generated from ggplotGrob. Returning original plot.")
+      return(p)
+    }
+  } else {
+    gp <- p
+  }
+  
+  # check for unfilled facet panels
+  facet.panels <- grep("^panel", gp[["layout"]][["name"]])
+  empty.facet.panels <- sapply(facet.panels, function(i) "zeroGrob" %in% class(gp[["grobs"]][[i]]), 
+                               USE.NAMES = F)
+  empty.facet.panels <- facet.panels[empty.facet.panels]
+  
+  if(length(empty.facet.panels) == 0){
+    message("There are no unfilled facet panels to shift legend into. Returning original plot.")
+    return(p)
+  }
+  
+  # establish name of empty panels
+  empty.facet.panels <- gp[["layout"]][empty.facet.panels, ]
+  names <- empty.facet.panels$name
+  
+  # return repositioned legend
+  lemon::reposition_legend(p, 'center', panel=names)
+  
+}
+
 ## Parse PSMC results
 psmc.result <- function(file, mu, s = 100, g){
   
@@ -151,13 +185,6 @@ plotXSMC_refEffect <- function(tbl, yearFilter = NULL, colour_palette, filterSam
       data <- filter(data, ! clock %in% filterClock)
     }
     
-    # if(inputSource == 'psmc') {
-    #   mt <- 'PSMC'
-    # } else {
-    #   mt <- 'MSMC'
-    # }
-    # st <- paste('Generation:', gen, 'Mutation:', mu, sep = ' ')
-    
     if(!is.null(yearFilter)){
       data <- filter(data, yearsAgo >= yearFilter)
     }
@@ -178,29 +205,30 @@ plotXSMC_refEffect <- function(tbl, yearFilter = NULL, colour_palette, filterSam
       )
     
     if(gen == 10){
-      p <- p + labs(x = expression(paste("Years (g = 10, mu = ",1.25, 'x', 10^-8, ")")),
+      p <- p + labs(x = expression(paste("Years before present (g = 10, mu = ",1.25, 'x', 10^-8, ")")),
                     y = expression(paste('Effective population size (N'[e], ')')))
     } else {
-      p <- p + labs(x = expression(paste("Years (g = 3, mu = ",7.2, 'x', 10^-9, ")")),
+      p <- p + labs(x = expression(paste("Years before present (g = 3, mu = ",7.2, 'x', 10^-9, ")")),
                     y = expression(paste('Effective population size (N'[e], ')')))
     }
     
-    p + 
+    p +
       scale_colour_manual(values = colour_palette) +
       scale_alpha_manual(values = c(0.1, 1), guide = FALSE) +
       scale_size_manual(values = c(0.4, 1)) +
       theme_bw() +
-      theme(strip.text.x = element_text(size = 13),
-            strip.text.y = element_text(size = 13),
+      theme(strip.text.x = element_text(size = 14, 
+                                        face = 'italic'),
+            strip.text.y = element_text(size = 16),
             axis.text = element_text(size = 16),
             axis.title = element_text(size = 16),
             legend.position = 'bottom',
             legend.title = element_blank(),
-            legend.text = element_text(face = 'italic', size = 16)) +
+            legend.text = element_text(face = 'italic', 
+                                       size = 16)) +
       guides(colour = guide_legend(override.aes = list(size = 5))) +
-      # annotation_logticks() +
       facet_grid(clock ~ sample,
-                 scales = 'free_y')
+                 scales = 'free_y', labeller = label_wrap_gen(15))
   }) %>%
     set_names(value = nms)
 }
@@ -261,15 +289,15 @@ plotPSMC_byRef <- function(tbl, max_Ne = NULL, filterSample = NULL, filterRef = 
         )
       
       if(gen == 10){
-        p <- p + labs(x = expression(paste("Years (g = 10, mu = ",1.25, 'x', 10^-8, ")")),
+        p <- p + labs(x = expression(paste("Years before present (g = 10, mu = ",1.25, 'x', 10^-8, ")")),
                       y = expression(paste('Effective population size (N'[e], ')')))
       } else {
-        p <- p + labs(x = expression(paste("Years (g = 3, mu = ",7.2, 'x', 10^-9, ")")),
+        p <- p + labs(x = expression(paste("Years before present (g = 3, mu = ",7.2, 'x', 10^-9, ")")),
                       y = expression(paste('Effective population size (N'[e], ')')))
       }
       
       p +
-        scale_colour_manual(values = colour_palette) +
+        scale_colour_manual(name = 'sample', values = colour_palette) +
         scale_alpha_manual(values = c(0.1, 1), guide = FALSE) +
         scale_size_manual(values = c(0.4, 1)) +
         theme_bw() +
@@ -283,7 +311,6 @@ plotPSMC_byRef <- function(tbl, max_Ne = NULL, filterSample = NULL, filterRef = 
     }) %>%
       set_names(value = df[['reference']])
   })
-  
 }
 
 ## Plot single PSMC - each sample to its own reference genome
@@ -335,27 +362,27 @@ plotPSMC_bestRef <- function(tbl, maxNe = NULL, filterSample = NULL, colour_pale
       )
     
     if(g == 10){
-      p <- p + labs(x = expression(paste("Years (g = 10, mu = ",1.25, 'x', 10^-8, ")")),
+      p <- p + labs(x = expression(paste("Years before present (g = 10, mu = ",1.25, 'x', 10^-8, ")")),
                     y = expression(paste('Effective population size (N'[e], ')')))
     } else {
-      p <- p + labs(x = expression(paste("Years (g = 3, mu = ",7.2, 'x', 10^-9, ")")),
+      p <- p + labs(x = expression(paste("Years before present (g = 3, mu = ",7.2, 'x', 10^-9, ")")),
                     y = expression(paste('Effective population size (N'[e], ')')))
     }
     
     p +
-      scale_colour_manual(values = colour_palette) +
-      scale_alpha_manual(values = c(0.1, 1), guide = FALSE) +
+      scale_colour_manual(name = sample, values = colour_palette) +
+      scale_alpha_manual(values = c(0.1, 1), 
+                         guide = FALSE) +
       scale_size_manual(values = c(0.4, 1)) +
       theme_bw() +
-      theme(strip.text.x = element_text(size = 13),
-            strip.text.y = element_text(size = 13),
+      theme(strip.text.y = element_text(size = 16),
             axis.text = element_text(size = 16),
             axis.title = element_text(size = 16),
             legend.position = 'bottom', 
             legend.title = element_blank(),
-            legend.text = element_text(face = 'italic', size = 16)) +
+            legend.text = element_text(face = 'italic', 
+                                       size = 16)) +
       guides(colour = guide_legend(override.aes = list(size = 5))) +
-      # annotation_logticks() +
       facet_grid(clock ~ .)
   })
   
@@ -392,15 +419,15 @@ plotPSMC <- function(tbl, g, c, maxNe = NULL, filterSample = NULL, colour_palett
     )
   
   if(g == 10){
-    p <- p + labs(x = expression(paste("Years (g = 10, mu = ",1.25, 'x', 10^-8, ")")),
+    p <- p + labs(x = expression(paste("Years before present (g = 10, mu = ",1.25, 'x', 10^-8, ")")),
                   y = expression(paste('Effective population size (N'[e], ')')))
   } else {
-    p <- p + labs(x = expression(paste("Years (g = 3, mu = ",7.2, 'x', 10^-9, ")")),
+    p <- p + labs(x = expression(paste("Years before present (g = 3, mu = ",7.2, 'x', 10^-9, ")")),
                   y = expression(paste('Effective population size (N'[e], ')')))
   }
   
   p +
-    scale_colour_manual(values = colour_palette) +
+    scale_colour_manual(name = sample, values = colour_palette) +
     scale_alpha_manual(values = c(0.1, 1), guide = FALSE) +
     scale_size_manual(values = c(0.4, 1)) +
     theme_bw() +
@@ -408,7 +435,8 @@ plotPSMC <- function(tbl, g, c, maxNe = NULL, filterSample = NULL, colour_palett
           legend.position = c(1, 0),
           legend.box.margin = margin(c(25,25,25,25)),
           legend.title = element_blank(),
-          legend.text = element_text(face = 'italic', size = 16),
+          legend.text = element_text(face = 'italic',
+                                     size = 16),
           axis.text = element_text(size = 16),
           axis.title = element_text(size = 16)) +
     guides(colour = guide_legend(override.aes = list(size = 5))) +
@@ -439,19 +467,20 @@ plotPSMC_scalingEffect <- function(tbl, c, colour_palette, filterSample = NULL){
     scale_y_log10(
       breaks = scales::trans_breaks("log10", function(x) 10^x),
       labels = scales::trans_format("log10", scales::math_format(10^.x))
-    ) + 
-    labs(x = 'Years',
-         y = expression(paste('Effective population size (N'[e], ')'))) +
+    ) +
+    labs(x = 'Years before present',
+         y = expression(paste('Effective population size (N'[e], ')')),
+         colour = 'Generation') +
     scale_colour_manual(values = colour_palette) +
     scale_alpha_manual(values = c(0.1, 1), guide = FALSE) +
     scale_size_manual(values = c(0.4, 1)) +
     theme_bw() +
-    theme(
-      legend.position = 'none',
-      axis.text = element_text(size = 16),
-      axis.title = element_text(size = 16)) +
-    # guides(colour = guide_legend(override.aes = list(size = 3))) +
-    annotation_logticks() +
+    theme(legend.text = element_text(size = 16),
+          legend.title = element_text(size = 16, face = 'bold'),
+          axis.text = element_text(size = 16),
+          axis.title = element_text(size = 16),
+          strip.text = element_text(size = 16, 
+                                    face = 'italic')) +
     facet_wrap(sample ~ .)
 }
 
@@ -480,7 +509,7 @@ plotPSMC_clockEffect <- function(tbl, g, colour_palette, filterSample = NULL){
       breaks = scales::trans_breaks("log10", function(x) 10^x),
       labels = scales::trans_format("log10", scales::math_format(10^.x))
     ) + 
-    labs(x = 'Years',
+    labs(x = 'Years before present',
          y = expression(paste('Effective population size (N'[e], ')'))) +
     scale_colour_manual(values = colour_palette) +
     scale_alpha_manual(values = c(0.1, 1), guide = FALSE) +
