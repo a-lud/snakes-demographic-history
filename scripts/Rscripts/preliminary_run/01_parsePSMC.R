@@ -3,7 +3,7 @@
 library(tidyverse)
 library(magrittr)
 
-source('scripts/demographic_history.R')
+source('scripts/Rscripts/demographic_history.R')
 
 ###############################################################################
 ## Parameters
@@ -55,7 +55,8 @@ tibble_psmc <- pmap(params, function(mutation, generation, windowSize){
            reference == 'aipysurusLaevis' ~ 'Aipysurus laevis',
            reference == 'GCA_009733165.1_Nana' ~ 'Naja naja',
            reference == 'GCA_004320025.1_latLat' ~ 'Laticauda laticaudata',
-           reference == 'GCA_004320045.1_latCor' ~ 'Laticauda colubrina'
+           reference == 'GCA_004320045.1_latCor' ~ 'Laticauda colubrina',
+           reference == 'Hcur1.v1.1' ~ 'Hydrophis curtus'
          ),
          sample = case_when(
            sample == 'DRR144984_DRR144985' ~ 'Laticauda laticaudata',
@@ -64,7 +65,8 @@ tibble_psmc <- pmap(params, function(mutation, generation, windowSize){
            sample == 'ERR2714264_ts' ~ 'Notechis scutatus',
            sample == 'ERR2714265' ~ 'Pseudonaja textilis',
            sample == 'KLS0691' ~ 'Aipysurus laevis',
-           sample == 'SRR10428161' ~ 'Naja naja'
+           sample == 'SRR10428161' ~ 'Naja naja',
+           sample == 'SRR10861675_SRR10861676' ~ 'Hydrophis curtus'
          )) %>%
   group_by(reference, gen, mu) %>%
   nest()
