@@ -12,3 +12,10 @@ their way into the final text.
 The `results` directory simply contains an `Rdata` objects that stored the aggregated
 PSMC results across samples and clock intervals. The tables used in the main text
 are also stored here.
+
+# Citation
+
+If you find the code in this repository helpful, please cite the paper the project
+relates to: [Demographic analyses of marine and terrestrial snakes (Elapidae) using whole genome sequences][paper]
+
+[paper]: https://doi.org/10.1111/mec.15726
